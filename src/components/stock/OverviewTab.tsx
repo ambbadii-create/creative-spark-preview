@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { Area, AreaChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Panel } from "@/components/app/ui-bits";
 import { useStock } from "@/lib/stock/store";
-import { monthlyStockValues, stockStatus, stockValue, turnoverRatio, warehouseLabel, WAREHOUSES } from "@/lib/stock/model";
+import { monthlyStockValues, movementDelta, movementValue, stockStatus, stockValue, turnoverRatio, warehouseLabel, WAREHOUSES } from "@/lib/stock/model";
 import { fmt, StatCard } from "@/components/budget/ui";
 
 const MONTH_LABELS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
@@ -38,6 +38,25 @@ export function OverviewTab() {
   );
 
   const topProducts = useMemo(() => [...products].sort((a, b) => stockValue(b) - stockValue(a)).slice(0, 5), [products]);
+
+  const flows = useMemo(() => {
+    const rows = MONTH_LABELS.map((mois) => ({ mois, entrees: 0, sorties: 0 }));
+    for (const m of movements) {
+      const row = rows[new Date(m.date).getMonth()];
+      if (!row) continue;
+      const v = movementValue(m);
+      if (movementDelta(m.type, m.quantity) >= 0) row.entrees += v;
+      else row.sorties += v;
+    }
+    const last = Math.max(-1, ...movements.map((m) => new Date(m.date).getMonth()));
+    return rows.slice(0, last + 1);
+  }, [movements]);
+
+  const slowMovers = useMemo(() => {
+    if (movements.filter((m) => m.type === "sortie").length < 3) return null;
+    const moved = new Set(movements.filter((m) => m.type === "sortie").map((m) => m.productId));
+    return products.filter((p) => p.stock > 0 && !moved.has(p.id)).sort((a, b) => stockValue(b) - stockValue(a)).slice(0, 5);
+  }, [products, movements]);
 
   const chartData = kpis.monthly.map((m) => ({ mois: MONTH_LABELS[m.mois], value: m.value }));
 
@@ -144,6 +163,46 @@ export function OverviewTab() {
               ))}
             </tbody>
           </table>
+        </Panel>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-3">
+        <Panel title="Historique des entrées et sorties" subtitle="Valeur mensuelle en DH (données de démonstration)" className="lg:col-span-2">
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={flows} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                <XAxis dataKey="mois" tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} />
+                <YAxis tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} tickFormatter={(v: number) => `${Math.round(v / 1000)} k`} />
+                <Tooltip formatter={(v: number) => fmt(v)} />
+                <Legend />
+                <Bar dataKey="entrees" name="Entrées" fill="var(--chart-2)" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="sorties" name="Sorties" fill="var(--chart-1)" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Panel>
+
+        <Panel title="Produits à faible rotation" subtitle="Aucune sortie enregistrée sur la période">
+          {slowMovers === null ? (
+            <p className="text-sm text-muted-foreground">Pas assez de mouvements pour évaluer la rotation.</p>
+          ) : slowMovers.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Tous les articles ont eu des sorties.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <tbody>
+                {slowMovers.map((p) => (
+                  <tr key={p.id} className="border-b border-border last:border-0">
+                    <td className="py-2 pr-3">
+                      <p className="text-foreground">{p.designation}</p>
+                      <p className="text-xs text-muted-foreground">{p.ref}</p>
+                    </td>
+                    <td className="py-2 text-right font-semibold text-foreground">{fmt(stockValue(p))}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </Panel>
       </div>
     </div>

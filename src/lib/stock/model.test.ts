@@ -62,10 +62,10 @@ describe("historique et rotation", () => {
   ];
   it("reconstitue les valeurs de fin de mois", () => {
     const v = monthlyStockValues(products as never, movements);
-    // fin mars : 90 − (−100×10 après mars… ) → valeur courante 900, mouvements après mars : −100 (sortie mai)
+    // mois indexés à partir de 0 : fin février = 0, fin mars = 1000, fin mai = 900
     expect(v.find((x) => x.mois === 4)?.value).toBe(900);
-    expect(v.find((x) => x.mois === 2)?.value).toBe(0);
-    expect(v.find((x) => x.mois === 3)?.value).toBe(1000);
+    expect(v.find((x) => x.mois === 1)?.value).toBe(0);
+    expect(v.find((x) => x.mois === 2)?.value).toBe(1000);
   });
   it("rotation = sorties / stock moyen, null sans sorties", () => {
     expect(turnoverRatio(movements, 500)).toBeCloseTo(0.2);
