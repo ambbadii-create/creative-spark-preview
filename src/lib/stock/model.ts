@@ -27,8 +27,8 @@ export type Product = {
   min: number;
   max: number;
   unitCost: number; // DH
-  supplier?: string;
-  barcode?: string;
+  supplier?: string | undefined;
+  barcode?: string | undefined;
   expiry?: string | null; // ISO date
 };
 
