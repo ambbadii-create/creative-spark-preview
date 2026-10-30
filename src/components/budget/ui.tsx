@@ -11,7 +11,7 @@ export const pct = (v: number | null) => (v === null ? "n.c." : `${v.toLocaleStr
 export const fieldCls =
   "h-9 w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/20";
 
-export function Select({ label, className, children, ...p }: SelectHTMLAttributes<HTMLSelectElement> & { label?: string }) {
+export function Select({ label, className, children, ...p }: SelectHTMLAttributes<HTMLSelectElement> & { label?: string | undefined }) {
   return (
     <label className={cn("block text-xs font-medium text-muted-foreground", className)}>
       {label && <span className="mb-1 block">{label}</span>}
@@ -20,7 +20,7 @@ export function Select({ label, className, children, ...p }: SelectHTMLAttribute
   );
 }
 
-export function Field({ label, error, className, ...p }: InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string | undefined }) {
+export function Field({ label, error, className, ...p }: InputHTMLAttributes<HTMLInputElement> & { label?: string | undefined; error?: string | undefined }) {
   return (
     <label className={cn("block text-xs font-medium text-muted-foreground", className)}>
       <span className="mb-1 block">{label}</span>
