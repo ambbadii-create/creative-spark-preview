@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { Area, AreaChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Panel } from "@/components/app/ui-bits";
 import { useStock } from "@/lib/stock/store";
-import { monthlyStockValues, stockStatus, stockValue, turnoverRatio, warehouseLabel, WAREHOUSES } from "@/lib/stock/model";
+import { monthlyStockValues, movementDelta, movementValue, stockStatus, stockValue, turnoverRatio, warehouseLabel, WAREHOUSES } from "@/lib/stock/model";
 import { fmt, StatCard } from "@/components/budget/ui";
 
 const MONTH_LABELS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
