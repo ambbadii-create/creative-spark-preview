@@ -80,10 +80,17 @@ export type Movement = {
 };
 export const movementValue = (m: Movement) => m.quantity * m.unitCost;
 
-export type OrderStatus = "Brouillon" | "En attente de validation" | "Validée" | "Partiellement reçue" | "Reçue" | "Annulée";
-export const ORDER_STATUSES: OrderStatus[] = ["Brouillon", "En attente de validation", "Validée", "Partiellement reçue", "Reçue", "Annulée"];
+export type OrderStatus = "Brouillon" | "En attente de validation" | "Validée" | "Envoyée" | "Partiellement reçue" | "Reçue" | "Annulée";
+export const ORDER_STATUSES: OrderStatus[] = ["Brouillon", "En attente de validation", "Validée", "Envoyée", "Partiellement reçue", "Reçue", "Annulée"];
 
-export type OrderLine = { productId: string; quantity: number; received: number; unitCost: number };
+export type OrderLine = {
+  productId: string;
+  quantity: number;
+  received: number;
+  unitCost: number; // prix unitaire HT (DH)
+  discount?: number | undefined; // remise en %
+  vatRate?: number | undefined; // taux de TVA en %
+};
 export type PurchaseOrder = {
   id: string;
   number: string; // CMD-2026-041
@@ -92,9 +99,13 @@ export type PurchaseOrder = {
   expected: string; // ISO, livraison prévue
   status: OrderStatus;
   lines: OrderLine[];
+  paymentTerms?: string | undefined; // ex. « 60 jours fin de mois »
 };
 
-export const orderTotal = (o: PurchaseOrder) => o.lines.reduce((a, l) => a + l.quantity * l.unitCost, 0);
+/** Montant HT net d'une ligne (après remise), arrondi au centime. */
+export const lineNetHT = (l: OrderLine) => Math.round(l.quantity * l.unitCost * (1 - (l.discount ?? 0) / 100) * 100) / 100;
+/** Total HT net de la commande. */
+export const orderTotal = (o: Pick<PurchaseOrder, "lines">) => Math.round(o.lines.reduce((a, l) => a + lineNetHT(l) * 100, 0)) / 100;
 export const orderQty = (o: PurchaseOrder) => o.lines.reduce((a, l) => a + l.quantity, 0);
 /** Statut après réception : toutes les lignes reçues → Reçue ; sinon Partiellement reçue. */
 export function receiptStatus(o: PurchaseOrder): OrderStatus {

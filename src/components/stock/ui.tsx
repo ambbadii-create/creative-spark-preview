@@ -16,6 +16,7 @@ const ORDER_TONE: Record<OrderStatus, string> = {
   Brouillon: "bg-muted text-muted-foreground",
   "En attente de validation": "bg-warning-soft text-warning",
   Validée: "bg-accent text-accent-foreground",
+  Envoyée: "bg-accent text-accent-foreground",
   "Partiellement reçue": "bg-accent text-accent-foreground",
   Reçue: "bg-success-soft text-success",
   Annulée: "bg-destructive-soft text-destructive",
